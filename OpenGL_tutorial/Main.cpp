@@ -2,6 +2,16 @@
 #include <GLFW/glfw3.h>
 
 #include <iostream>
+#include <fstream>
+#include <string>
+
+std::string SringFromFile(const std::string& file_link)
+{
+	std::ifstream ifs(file_link);
+	std::string s;
+	std::getline(ifs, s, (char)ifs.eof());
+	return s;
+}
 
 static unsigned int CompileShader(unsigned int type, const std::string& source)
 {
@@ -85,26 +95,10 @@ int main(void)
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);//aattribute, how many variables, data type, no normalize, size of one vertex, offset where attribute starts 
 	
-	std::string vertexShader =
-		"#version 330 core\n"
-		"\n"
-		"layout(location = 0) in vec4 position;"
-		"\n"
-		"void main()\n"
-		"{\n"
-		"	gl_Position = position;\n"
-		"}\n";
-	std::string fragmentShader =
-		"#version 330 core\n"
-		"\n"
-		"layout(location = 0) out vec4 color;"
-		"\n"
-		"void main()\n"
-		"{\n"
-		"	color = vec4(1.0, 0.0, 0.0, 1.0);\n"
-		"}\n";
 
-	unsigned int shader = CreateShader(vertexShader, fragmentShader);
+
+
+	unsigned int shader = CreateShader(SringFromFile("res/vertexShader.shader"), SringFromFile("res/fragmentShader.shader"));
 	glUseProgram(shader);
 
 	//glBindBuffer(GL_ARRAY_BUFFER, 0);
