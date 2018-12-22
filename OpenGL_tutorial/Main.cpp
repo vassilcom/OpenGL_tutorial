@@ -80,21 +80,32 @@ int main(void)
 	else 
 		std::cout << glGetString(GL_VERSION) << std::endl;
 
-	float positions[6] =
+	float positions[] =
 	{
 		-0.5f, -0.5f,
-		 0.0f, 0.5f,
-		 0.5f, -0.5f
+		 0.5f, -0.5f,
+		 0.5f,  0.5f,
+		-0.5f,  0.5f
 	};
-
+	unsigned int indices[] =
+	{
+		0,1,2,
+		2,3,0
+	};
+	
 	unsigned int buffer;//id for buffer
 	glGenBuffers(1, &buffer);//assigns id
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);//selects buffer
-	glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW);//set size f buffer, static or dinamic, and give a data, that is oprional (can be NULL, and data can be assigned later)
+	glBufferData(GL_ARRAY_BUFFER, (sizeof(positions) / sizeof(*positions)) * sizeof(float), positions, GL_STATIC_DRAW);//set size f buffer, static or dinamic, and give a data, that is oprional (can be NULL, and data can be assigned later)
 
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);//aattribute, how many variables, data type, no normalize, size of one vertex, offset where attribute starts 
 	
+	unsigned int ibo;
+	glGenBuffers(1, &ibo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, (sizeof(indices) / sizeof(*indices)) * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+
 
 	unsigned int shader = CreateShader(StringFromFile("res/vertexShader.shader"), StringFromFile("res/fragmentShader.shader"));
 	glUseProgram(shader);
@@ -109,7 +120,7 @@ int main(void)
 
 	
 		//since we dont have index buffer yet:
-		glDrawArrays(GL_TRIANGLES,0,3);//type, start position, number of vertexes
+		glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT, nullptr);//type, number of indexes, data type, pointer to index buffer
 
 
 		/* Swap front and back buffers */
@@ -118,7 +129,7 @@ int main(void)
 		/* Poll for and process events */
 		glfwPollEvents();
 	}
-
+	glDeleteProgram(shader);
 	glfwTerminate();
 	return 0;
 }
