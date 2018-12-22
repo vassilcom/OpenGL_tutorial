@@ -5,7 +5,7 @@
 #include <fstream>
 #include <string>
 
-std::string SringFromFile(const std::string& file_link)
+std::string StringFromFile(const std::string& file_link)
 {
 	std::ifstream ifs(file_link);
 	std::string s;
@@ -96,9 +96,7 @@ int main(void)
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);//aattribute, how many variables, data type, no normalize, size of one vertex, offset where attribute starts 
 	
 
-
-
-	unsigned int shader = CreateShader(SringFromFile("res/vertexShader.shader"), SringFromFile("res/fragmentShader.shader"));
+	unsigned int shader = CreateShader(StringFromFile("res/vertexShader.shader"), StringFromFile("res/fragmentShader.shader"));
 	glUseProgram(shader);
 
 	//glBindBuffer(GL_ARRAY_BUFFER, 0);
