@@ -96,6 +96,8 @@ int main(void)
 	/* Make the window's context current */
 	glfwMakeContextCurrent(window);
 
+	glfwSwapInterval(1);
+
 	if (glewInit() != GLEW_OK)
 		std::cout << "glew error" << std::endl;
 	else 
@@ -131,14 +133,20 @@ int main(void)
 	GLCall(unsigned int shader = CreateShader(StringFromFile("res/vertexShader.shader"), StringFromFile("res/fragmentShader.shader")));
 	GLCall(glUseProgram(shader));
 
-	//glBindBuffer(GL_ARRAY_BUFFER, 0);
-
+	int location = glGetUniformLocation(shader, "u_Color");
+	
 	/* Loop until the user closes the window */
+	float n = 0.0f;
 	while (!glfwWindowShouldClose(window))
 	{
 		/* Render here */
 		glClear(GL_COLOR_BUFFER_BIT);
 
+		n =n + 0.01f;
+		float animNormalizedFloat = (float)((int)(n*100.0f) % 100) / 100.0f;
+
+		glUniform4f(location, animNormalizedFloat, .0f, .0f, 1.0f);
+		
 	
 		//since we dont have index buffer yet:
 		GLCall(glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT, nullptr));//type, number of indexes, data type, pointer to index buffer
