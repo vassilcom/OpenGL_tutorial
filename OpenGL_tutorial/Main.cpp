@@ -5,25 +5,9 @@
 #include <fstream>
 #include <string>
 
-//OpenGL Debuging
-#define ASSERT(x) if (!(x)) __debugbreak();
-#define GLCall(x) GLClearError();\
-	x;\
-	ASSERT(GLLogCall())
-static void GLClearError() 
-{
-	while (glGetError()!=GL_NO_ERROR);
-}
-static bool GLLogCall()
-{
-	while (GLenum error = glGetError())
-	{
-		std::cout << "[OpenGL Error]"<< error << std::endl;
-		return false;
-	}
-	return true;
-}
-
+#include "Renderer.h"
+#include "VertexBuffer.h"
+#include "IndexBuffer.h"
 
 std::string StringFromFile(const std::string& file_link)
 {
@@ -107,80 +91,66 @@ int main(void)
 	else 
 		std::cout << glGetString(GL_VERSION) << std::endl;
 
-	
-	float positions[] =
 	{
-		-0.5f, -0.5f,
-		 0.5f, -0.5f,
-		 0.5f,  0.5f,
-		-0.5f,  0.5f
-	};
-	unsigned int indices[] =
-	{
-		0,1,2,
-		2,3,0
-	};
-	unsigned int vao;
-	GLCall(glGenVertexArrays(1, &vao));
-	GLCall(glBindVertexArray(vao));
-	
-	unsigned int buffer;//id for buffer
-	GLCall(glGenBuffers(1, &buffer));//assigns id
-	//bind vertex buffer
-	GLCall(glBindBuffer(GL_ARRAY_BUFFER, buffer));//selects buffer
-	GLCall(glBufferData(GL_ARRAY_BUFFER, (sizeof(positions) / sizeof(*positions)) * sizeof(float), positions, GL_STATIC_DRAW));//set size f buffer, static or dinamic, and give a data, that is oprional (can be NULL, and data can be assigned later)
-
-	GLCall(glEnableVertexAttribArray(0));
-	//setup vertex layout
-	GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0));//aattribute, how many variables, data type, no normalize, size of one vertex, offset where attribute starts 
-	
-	
-	unsigned int ibo;
-	GLCall(glGenBuffers(1, &ibo));
-	//bind index buffer 
-	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
-	GLCall(glBufferData(GL_ELEMENT_ARRAY_BUFFER, (sizeof(indices) / sizeof(*indices)) * sizeof(unsigned int), indices, GL_STATIC_DRAW));
-
-	
-	GLCall(unsigned int shader = CreateShader(StringFromFile("res/vertexShader.shader"), StringFromFile("res/fragmentShader.shader")));
-	//bind shader
-	GLCall(glUseProgram(shader));
-
-	int location = glGetUniformLocation(shader, "u_Color");
-	
-	//temporary unbinding
-	GLCall(glUseProgram(0));//unbind shader
-	GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));//unbind index buffer 
-	GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));//unbind vertex buffer
-	GLCall(glBindVertexArray(0));//unbind vertex Array
-
-	/* Loop until the user closes the window */
-	float n = 0.0f;
-	while (!glfwWindowShouldClose(window))
-	{
-		/* Render here */
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		n =n + 0.01f;
-		float animNormalizedFloat = (float)((int)(n*100.0f) % 100) / 100.0f;
-
-		GLCall(glUseProgram(shader));
-		glUniform4f(location, animNormalizedFloat, .0f, .0f, 1.0f);
+		float positions[] =
+		{
+			-0.5f, -0.5f,
+			 0.5f, -0.5f,
+			 0.5f,  0.5f,
+			-0.5f,  0.5f
+		};
+		unsigned int indices[] =
+		{
+			0,1,2,
+			2,3,0
+		};
+		unsigned int vao;
+		GLCall(glGenVertexArrays(1, &vao));
 		GLCall(glBindVertexArray(vao));
-		GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo));
+		VertexBuffer vb(positions, (sizeof(positions) / sizeof(*positions)) * sizeof(float));
+		GLCall(glEnableVertexAttribArray(0));
+		GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0));//setup vertex layout//aattribute, how many variables, data type, no normalize, size of one vertex, offset where attribute starts 
+		IndexBuffer ib(indices, sizeof(indices) / sizeof(*indices));
 
-		//draw call 	
-		//since we dont have index buffer yet:
-		GLCall(glDrawElements(GL_TRIANGLES,6,GL_UNSIGNED_INT, nullptr));//type, number of indexes, data type, pointer to index buffer
+		GLCall(unsigned int shader = CreateShader(StringFromFile("res/vertexShader.shader"), StringFromFile("res/fragmentShader.shader")));
+		GLCall(glUseProgram(shader));//bind shader
+
+		int location = glGetUniformLocation(shader, "u_Color");
+
+		//temporary unbinding
+		GLCall(glUseProgram(0));//unbind shader
+		GLCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));//unbind index buffer 
+		GLCall(glBindBuffer(GL_ARRAY_BUFFER, 0));//unbind vertex buffer
+		GLCall(glBindVertexArray(0));//unbind vertex Array
+
+		/* Loop until the user closes the window */
+		float n = 0.0f;
+		while (!glfwWindowShouldClose(window))
+		{
+			/* Render here */
+			glClear(GL_COLOR_BUFFER_BIT);
+
+			n = n + 0.01f;
+			float animNormalizedFloat = (float)((int)(n*100.0f) % 100) / 100.0f;
+
+			GLCall(glUseProgram(shader));
+			glUniform4f(location, animNormalizedFloat, .0f, .0f, 1.0f);
+			GLCall(glBindVertexArray(vao));
+			ib.Bind();
+
+			//draw call 	
+			//since we dont have index buffer yet:
+			GLCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));//type, number of indexes, data type, pointer to index buffer
 
 
-		/* Swap front and back buffers */
-		glfwSwapBuffers(window);
+			/* Swap front and back buffers */
+			glfwSwapBuffers(window);
 
-		/* Poll for and process events */
-		glfwPollEvents();
+			/* Poll for and process events */
+			glfwPollEvents();
+		}
+		GLCall(glDeleteProgram(shader));
 	}
-	GLCall(glDeleteProgram(shader));
 	glfwTerminate();
 	return 0;
 }
