@@ -8,6 +8,8 @@
 #include "Renderer.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
+#include "VertexArray.h"
+
 
 std::string StringFromFile(const std::string& file_link)
 {
@@ -104,12 +106,20 @@ int main(void)
 			0,1,2,
 			2,3,0
 		};
-		unsigned int vao;
-		GLCall(glGenVertexArrays(1, &vao));
-		GLCall(glBindVertexArray(vao));
+		//unsigned int vao;
+		//GLCall(glGenVertexArrays(1, &vao));
+		//GLCall(glBindVertexArray(vao));
+
+		VertexArray va;
 		VertexBuffer vb(positions, (sizeof(positions) / sizeof(*positions)) * sizeof(float));
-		GLCall(glEnableVertexAttribArray(0));
-		GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0));//setup vertex layout//aattribute, how many variables, data type, no normalize, size of one vertex, offset where attribute starts 
+		
+		VertexBufferLayout layout;
+		layout.Push<float>(2);
+		va.AddBuffer(vb, layout);
+
+		//GLCall(glEnableVertexAttribArray(0));
+		//GLCall(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0));//setup vertex layout//aattribute, how many variables, data type, no normalize, size of one vertex, offset where attribute starts 
+		
 		IndexBuffer ib(indices, sizeof(indices) / sizeof(*indices));
 
 		GLCall(unsigned int shader = CreateShader(StringFromFile("res/vertexShader.shader"), StringFromFile("res/fragmentShader.shader")));
@@ -135,7 +145,9 @@ int main(void)
 
 			GLCall(glUseProgram(shader));
 			glUniform4f(location, animNormalizedFloat, .0f, .0f, 1.0f);
-			GLCall(glBindVertexArray(vao));
+			//GLCall(glBindVertexArray(vao));
+
+			va.Bind();
 			ib.Bind();
 
 			//draw call 	
